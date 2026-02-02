@@ -1,0 +1,49 @@
+
+import os
+from openai import OpenAI
+import json
+
+class LLMAdvisor:
+    def __init__(self, api_key: str = None):
+        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
+        self.client = OpenAI(api_key=self.api_key) if self.api_key else None
+
+    def get_portfolio_advice(self, current_portfolio: dict, metrics: dict, optimized_weights: dict) -> str:
+        """
+        Generates advice based on portfolio data.
+        """
+        if not self.client:
+            return "LLM Advisor disabled (API Key missing)."
+            
+        prompt = self._construct_prompt(current_portfolio, metrics, optimized_weights)
+        
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4o", # or gpt-3.5-turbo
+                messages=[
+                    {"role": "system", "content": "You are an expert financial advisor. Analyze the portfolio metrics and optimization suggestions provided. Give concise, actionable advice on how to improve the portfolio's risk-adjusted return. Focus on diversification gaps."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=500
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            return f"Error gathering advice: {str(e)}"
+
+    def _construct_prompt(self, current_portfolio, metrics, optimized_weights) -> str:
+        return f"""
+        Current Portfolio Tickers: {current_portfolio.get('tickers', [])}
+        
+        Current Performance:
+        - Annual Return: {metrics.get('return', 0):.2%}
+        - Volatility: {metrics.get('volatility', 0):.2%}
+        - Sharpe Ratio: {metrics.get('sharpe', 0):.2f}
+        
+        Optimization Suggestion (MVO):
+        {json.dumps(optimized_weights.get('mvo', {}), indent=2)}
+        
+        Optimization Suggestion (HRP):
+        {json.dumps(optimized_weights.get('hrp', {}), indent=2)}
+        
+        Please compare the current portfolio with the optimized suggestions and explain 3 key changes the user should make.
+        """

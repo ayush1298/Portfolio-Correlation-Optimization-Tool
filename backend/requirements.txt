@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+pandas
+numpy
+alpha_vantage
+PyPortfolioOpt
+python-multipart
+python-dotenv
+openai
+scipy
+scikit-learn
