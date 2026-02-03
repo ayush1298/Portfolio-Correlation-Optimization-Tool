@@ -22,7 +22,15 @@ A web-based application to analyze your investment portfolio, visualize correlat
 cd backend
 pip install -r requirements.txt
 export ALPHA_VANTAGE_API_KEY="your_key"
-export OPENAI_API_KEY="your_key" # Optional
+
+# For OpenAI
+export OPENAI_API_KEY="your_key"
+
+# OR For Ollama (Open Source)
+export LLM_PROVIDER="ollama"
+export LLM_MODEL="llama3" # or mistral, etc.
+# export OLLAMA_BASE_URL="http://localhost:11434/v1" # Optional, default
+
 uvicorn main:app --reload
 ```
 

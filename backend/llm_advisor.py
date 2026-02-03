@@ -4,22 +4,31 @@ from openai import OpenAI
 import json
 
 class LLMAdvisor:
-    def __init__(self, api_key: str = None):
-        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
-        self.client = OpenAI(api_key=self.api_key) if self.api_key else None
+    def __init__(self):
+        self.provider = os.getenv("LLM_PROVIDER", "openai").lower()
+        self.api_key = os.getenv("OPENAI_API_KEY")
+        self.base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1")
+        self.model = os.getenv("LLM_MODEL", "gpt-4o" if self.provider == "openai" else "llama3")
+
+        if self.provider == "ollama":
+            self.client = OpenAI(base_url=self.base_url, api_key="ollama")
+        elif self.api_key:
+            self.client = OpenAI(api_key=self.api_key)
+        else:
+            self.client = None
 
     def get_portfolio_advice(self, current_portfolio: dict, metrics: dict, optimized_weights: dict) -> str:
         """
         Generates advice based on portfolio data.
         """
         if not self.client:
-            return "LLM Advisor disabled (API Key missing)."
+            return "LLM Advisor disabled (API Key missing or provider not configured)."
             
         prompt = self._construct_prompt(current_portfolio, metrics, optimized_weights)
         
         try:
             response = self.client.chat.completions.create(
-                model="gpt-4o", # or gpt-3.5-turbo
+                model=self.model,
                 messages=[
                     {"role": "system", "content": "You are an expert financial advisor. Analyze the portfolio metrics and optimization suggestions provided. Give concise, actionable advice on how to improve the portfolio's risk-adjusted return. Focus on diversification gaps."},
                     {"role": "user", "content": prompt}
