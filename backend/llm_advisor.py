@@ -4,9 +4,10 @@ from openai import OpenAI
 import json
 
 class LLMAdvisor:
-    def __init__(self):
-        self.provider = os.getenv("LLM_PROVIDER", "openai").lower()
-        self.api_key = os.getenv("OPENAI_API_KEY")
+    def __init__(self, api_key: str = None, provider: str = None):
+        self.provider = (provider or os.getenv("LLM_PROVIDER", "openai")).lower()
+        # If openai, key comes from arg or env. If ollama, key is 'ollama' or ignored.
+        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         self.base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1")
         self.model = os.getenv("LLM_MODEL", "gpt-4o" if self.provider == "openai" else "llama3")
 

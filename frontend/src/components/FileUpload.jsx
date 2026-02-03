@@ -5,6 +5,8 @@ import axios from 'axios';
 const FileUpload = ({ onDataLoaded }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [apiKey, setApiKey] = useState('');
+    const [llmApiKey, setLlmApiKey] = useState('');
 
     const handleFileChange = async (e) => {
         const file = e.target.files[0];
@@ -20,6 +22,7 @@ const FileUpload = ({ onDataLoaded }) => {
             const response = await axios.post('http://localhost:8000/api/analyze', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
+                    'X-LLM-API-KEY': llmApiKey,
                 },
             });
             onDataLoaded(response.data);
@@ -34,7 +37,18 @@ const FileUpload = ({ onDataLoaded }) => {
     return (
         <div className="flex flex-col items-center justify-center p-10 border-2 border-dashed border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
             <h2 className="text-xl font-semibold mb-4 text-gray-700">Upload Portfolio</h2>
-            <p className="text-sm text-gray-500 mb-6">Upload an Excel (.xlsx) or CSV file with a "Ticker" column.</p>
+
+            <div className="w-full mb-6 space-y-3">
+                <input
+                    type="text"
+                    placeholder="OpenAI API Key (Optional)"
+                    value={llmApiKey}
+                    onChange={(e) => setLlmApiKey(e.target.value)}
+                    className="w-full px-4 py-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+            </div>
+
+            <p className="text-sm text-gray-500 mb-6">Upload an Excel (.xlsx) or CSV file with a "Ticker" or "Company" column.</p>
 
             <input
                 type="file"

@@ -7,12 +7,11 @@ A web-based application to analyze your investment portfolio, visualize correlat
 - **Risk Metrics**: Calculate Volatility, Sharpe Ratio, and Expected Returns.
 - **Optimization**: Get portfolio allocation suggestions using Mean-Variance Optimization (MVO) and Hierarchical Risk Parity (HRP).
 - **AI Insights**: LLM-generated advice on diversification (requires OpenAI API).
-- **Ticker Resolution**: Automatically resolves company names to tickers using Alpha Vantage.
+- **Data Source**: Automatically fetches historical market data using `yfinance`.
 
 ## Prerequisites
 - Python 3.8+
 - Node.js 16+
-- [Alpha Vantage API Key](https://www.alphavantage.co/) (Free)
 - [OpenAI API Key](https://platform.openai.com/) (Optional)
 
 ## Setup & Run
@@ -21,10 +20,7 @@ A web-based application to analyze your investment portfolio, visualize correlat
 ```bash
 cd backend
 pip install -r requirements.txt
-export ALPHA_VANTAGE_API_KEY="your_key"
-
-# For OpenAI
-export OPENAI_API_KEY="your_key"
+# export OPENAI_API_KEY="your_key" # Optional
 
 # OR For Ollama (Open Source)
 export LLM_PROVIDER="ollama"
@@ -44,6 +40,6 @@ npm run dev
 ## Usage
 1. Open the frontend (usually `http://localhost:5173`).
 2. Upload a CSV or Excel file with columns:
-   - `Ticker` (e.g., AAPL) OR `Company` (e.g., Apple Inc.)
+   - `Ticker` (e.g., AAPL)
    - `Weight` (Optional, e.g., 0.5)
 3. View analysis and recommendations.

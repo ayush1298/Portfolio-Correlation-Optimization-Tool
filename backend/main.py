@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from .data_loader import DataLoader
 from .analytics import PortfolioAnalytics
@@ -24,7 +24,11 @@ def read_root():
     return {"message": "Welcome to the Portfolio Optimization API"}
 
 @app.post("/api/analyze")
-async def analyze_portfolio(file: UploadFile = File(...)):
+async def analyze_portfolio(
+    file: UploadFile = File(...),
+    llm_api_key: str = Header(None, alias="X-LLM-API-KEY"),
+    llm_provider: str = Header("openai", alias="X-LLM-PROVIDER")
+):
     if not file.filename.endswith(('.csv', '.xls', '.xlsx')):
         raise HTTPException(status_code=400, detail="Invalid file format")
     
@@ -38,22 +42,9 @@ async def analyze_portfolio(file: UploadFile = File(...)):
         # Validate Columns
         df_cols = portfolio_df.columns.tolist()
         
-        # Check if 'ticker' exists, otherwise look for 'company'/'name'
+        # Check if 'ticker' exists
         if 'ticker' not in df_cols:
-            name_col = next((c for c in df_cols if c in ['company', 'name', 'description', 'security']), None)
-            if name_col:
-                # Resolve Tickers
-                print("Resolving tickers from company names...")
-                resolved_tickers = []
-                for name in portfolio_df[name_col]:
-                    ticker = loader.resolve_ticker(name)
-                    if ticker:
-                        resolved_tickers.append(ticker)
-                    else:
-                        raise HTTPException(status_code=400, detail=f"Could not resolve ticker for: {name}")
-                portfolio_df['ticker'] = resolved_tickers
-            else:
-                 raise HTTPException(status_code=400, detail="File must contain a 'Ticker' or 'Company' column.")
+             raise HTTPException(status_code=400, detail="File must contain a 'Ticker' column. Ticker resolution is disabled.")
 
         tickers = portfolio_df['ticker'].tolist()
         
@@ -90,7 +81,9 @@ async def analyze_portfolio(file: UploadFile = File(...)):
         hrp_weights = optimizer.optimize_hrp()
         
         # LLM Advice
-        advisor = LLMAdvisor()
+        # We need to update LLMAdvisor to accept dynamic config if we want to support frontend keys completely
+        # For now, let's assume we pass the keys if provided
+        advisor = LLMAdvisor(api_key=llm_api_key, provider=llm_provider)
         advice = advisor.get_portfolio_advice(
             {"tickers": tickers, "weights": weights},
             current_perf,
